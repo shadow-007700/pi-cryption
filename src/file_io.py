@@ -20,6 +20,7 @@ def stream_pi_data(filepath: str):
 
     # We must open the file in binary read-only mode ("rb") for mmap to work optimally
     file_obj = open(filepath, "rb")
+    pi_mmap = None
     
     try:
         # Create the memory map. 
@@ -29,12 +30,14 @@ def stream_pi_data(filepath: str):
         yield pi_mmap
     finally:
         # This cleanup code runs automatically when we are done
-        pi_mmap.close()
+        if pi_mmap is not None:
+            pi_mmap.close()
         file_obj.close()
 
-# --- Quick Test ---
+# --- Quick Test (You can run this file directly to test it) ---
 if __name__ == "__main__":
-    test_path = "../data/pi_100M.txt"
+    # Assuming you have a file named pi_50M.txt in the data folder
+    test_path = "../data/pi_50M.txt"
     
     # Create a dummy file just for this quick test if it doesn't exist
     os.makedirs("../data", exist_ok=True)
