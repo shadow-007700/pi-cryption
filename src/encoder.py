@@ -46,9 +46,16 @@ def encode_string(target_string: str) -> list[tuple[int, int]]:
         
         # We work with bytes because mmap returns bytes, and it's faster
         remaining_target = target_string.encode('ascii')
+
+        # FAILSAFE: Ensure we never get stuck in an infinite loop!
+        max_iterations = len(remaining_target)
+        loops = 0
         
         while remaining_target:
-            
+
+            loops += 1
+            if loops > max_iterations:
+                raise RuntimeError("Encoder caught in an infinite loop! Check indentation.")
             # EDGE CASE: What if we have fewer than 6 digits left to encode?
             # Our lookup table only works for exactly 6 digits.
             if len(remaining_target) < LOOKUP_DIGITS:
@@ -57,7 +64,8 @@ def encode_string(target_string: str) -> list[tuple[int, int]]:
                 if idx == -1:
                     raise RuntimeError("Failed to find chunk in Pi! (Dataset too small)")
                 
-                encoded_pairs.append((idx, len(remaining_target)))
+                # Safely cast to standard python int for the final output
+                encoded_pairs.append((int(idx), len(remaining_target)))
                 break
                 
             # THE HAPPY PATH: 6 or more digits
@@ -66,19 +74,27 @@ def encode_string(target_string: str) -> list[tuple[int, int]]:
             # Instantly get the index of the first 6 digits from our Numpy array
             prefix_int = int(prefix)
             
-            # Cast the numpy.int32 back to a standard Python int so the decoder can read it!
-            idx = int(lookup_table[prefix_int])
+            # FIX: Use .item() to safely extract a pure Python integer from the Numpy array
+            idx = lookup_table[prefix_int].item()
             
             if idx == -1:
-                # Fallback just in case a number wasn't found in our scan
-                # Now, use binary search to see if digits 7, 8, 9, etc., also match!
-                match_len = get_longest_match_length(pi_mmap, idx, remaining_target)
-            
-                # Record the coordinates!
-                encoded_pairs.append((idx, match_len))
+                # Fallback search if lookup table missed it
+                idx = pi_mmap.find(prefix)
+                if idx == -1:
+                    raise RuntimeError(f"Critical Error: Chunk {prefix} not found in dataset!")
                 
-                # Chop off the part we just encoded, and loop again for the rest
-                remaining_target = remaining_target[match_len:]
+            # Now, use binary search to see if digits 7, 8, 9, etc., also match!
+            match_len = get_longest_match_length(pi_mmap, idx, remaining_target)
+
+            # HARD ABORT: Ensure the algorithm is mathematically forced to shrink the target
+            if match_len <= 0:
+                raise RuntimeError("Match length failure. Aborting to prevent hang.")
+        
+            # Safely cast both to standard Python integers so the decoder doesn't crash
+            encoded_pairs.append((int(idx), int(match_len)))
+            
+            # Chop off the part we just encoded, and loop again for the rest
+            remaining_target = remaining_target[match_len:]
             
     return encoded_pairs
 
