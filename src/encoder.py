@@ -1,6 +1,6 @@
 import numpy as np
-from config import PI_FILE_PATH, LOOKUP_FILE_PATH, LOOKUP_DIGITS
-from file_io import stream_pi_data
+from src.config import PI_FILE_PATH, LOOKUP_FILE_PATH, LOOKUP_DIGITS
+from src.file_io import stream_pi_data
 
 def get_longest_match_length(pi_mmap, start_idx, target_bytes):
     """
