@@ -65,20 +65,20 @@ def encode_string(target_string: str) -> list[tuple[int, int]]:
             
             # Instantly get the index of the first 6 digits from our Numpy array
             prefix_int = int(prefix)
-            idx = lookup_table[prefix_int]
+            
+            # Cast the numpy.int32 back to a standard Python int so the decoder can read it!
+            idx = int(lookup_table[prefix_int])
             
             if idx == -1:
-                # Fallback just in case a number wasn't found in our 14M digit scan
-                idx = pi_mmap.find(prefix)
+                # Fallback just in case a number wasn't found in our scan
+                # Now, use binary search to see if digits 7, 8, 9, etc., also match!
+                match_len = get_longest_match_length(pi_mmap, idx, remaining_target)
+            
+                # Record the coordinates!
+                encoded_pairs.append((idx, match_len))
                 
-            # Now, use binary search to see if digits 7, 8, 9, etc., also match!
-            match_len = get_longest_match_length(pi_mmap, idx, remaining_target)
-            
-            # Record the coordinates!
-            encoded_pairs.append((idx, match_len))
-            
-            # Chop off the part we just encoded, and loop again for the rest
-            remaining_target = remaining_target[match_len:]
+                # Chop off the part we just encoded, and loop again for the rest
+                remaining_target = remaining_target[match_len:]
             
     return encoded_pairs
 
