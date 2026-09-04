@@ -1,0 +1,18 @@
+# Environments
+venv/
+env/
+.env
+
+# Python Cache
+pycache/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# VS Code specific files
+.vscode/
+
+# MASSIVE DATA FILES
+data/pi_100M.txt
+data/*.npy
+*.csv

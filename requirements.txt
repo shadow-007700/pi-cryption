@@ -1,0 +1,14 @@
+# High-performance array operations for the lookup table
+numpy==2.0.0
+
+# Beautiful terminal output for your CLI
+rich==13.7.1
+
+# Progress bars (highly recommended for when your indexer is building the 6-digit lookup table)
+tqdm==4.66.4
+
+# Fast, industry-standard linter and code formatter
+ruff==0.4.8
+
+# Testing framework
+pytest==8.2.2
